@@ -1854,7 +1854,11 @@ namespace Community.SQLite
             {
                 return "integer";
             }
-            else if (clrType == typeof(UInt32) || clrType == typeof(Int64) || clrType == typeof(TimeSpan))
+            else if (clrType == typeof(UInt32) || clrType == typeof(Int64))
+            {
+                return p.IsPK ? "integer" : "bigint";
+            }
+            else if (clrType == typeof(TimeSpan))
             {
                 return "bigint";
             }
