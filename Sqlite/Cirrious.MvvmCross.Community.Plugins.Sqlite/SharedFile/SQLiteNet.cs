@@ -1400,8 +1400,15 @@ namespace Community.SQLite
                        select c.GetValue(obj);
             var ps = new List<object>(vals);
             ps.Add(pk.GetValue(obj));
-            var q = string.Format("update \"{0}\" set {1} where {2} = ? ", map.TableName, string.Join(",", (from c in cols
-                                                                                                            select "\"" + c.Name + "\" = ? ").ToArray()), pk.Name);
+
+            var set = string.Join(",", (from c in cols select "\"" + c.Name + "\" = ? ").ToArray());
+            if ( set.Length == 0 )
+            {
+                return 0;
+            }
+
+            var q = string.Format("update \"{0}\" set {1} where {2} = ? ", map.TableName, set, pk.Name);
+
             return Execute(q, ps.ToArray());
         }
 
