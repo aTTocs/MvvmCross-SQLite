@@ -2040,31 +2040,52 @@ namespace Community.SQLite
             // Can be overridden.
         }
 
-        public IEnumerable<T> ExecuteDeferredQuery<T>(ITableMapping map)
+        public IEnumerable<T> ExecuteDeferredQuery<T>(ITableMapping imap)
         {
             if (_conn.Trace)
             {
                 Debug.WriteLine("Executing Query: " + this);
             }
 
+            var map = imap as TableMapping;
+
             var stmt = Prepare();
             try
             {
                 var cols = new TableMapping.Column[SQLite3.ColumnCount(stmt)];
 
+                int pkIndex = -1;
+
                 for (int i = 0; i < cols.Length; i++)
                 {
                     var name = SQLite3.ColumnName16(stmt, i);
-                    cols[i] = ((TableMapping)map).FindColumn(name);
+                    cols[i] = map.FindColumn(name);
+
+                    if ( cols[i] == map.PK )
+                    {
+                        pkIndex = i;
+                    }
                 }
 
                 while (SQLite3.Step(stmt) == SQLite3.Result.Row)
                 {
-                    var obj = Activator.CreateInstance(((TableMapping)map).MappedType);
+                    var obj = Activator.CreateInstance(map.MappedType);
+
+                    // Set PK first
+                    if ( pkIndex > -1 && cols[pkIndex] != null )
+                    {
+                        var colType = SQLite3.ColumnType(stmt, pkIndex);
+                        var val = ReadCol(stmt, pkIndex, colType, cols[pkIndex].ColumnType);
+                        cols[pkIndex].SetValue(obj, val);
+                    }
+
                     for (int i = 0; i < cols.Length; i++)
                     {
-                        if (cols[i] == null)
+                        if (cols[i] == null || i == pkIndex)
+                        {
                             continue;
+                        }
+
                         var colType = SQLite3.ColumnType(stmt, i);
                         var val = ReadCol(stmt, i, colType, cols[i].ColumnType);
                         cols[i].SetValue(obj, val);
