@@ -296,8 +296,6 @@ namespace Cirrious.MvvmCross.Community.Plugins.Sqlite
 
         int Count(Expression<Func<T, bool>> predExpr);
 
-        IEnumerator<T> GetEnumerator();
-
         T First();
 
         T FirstOrDefault();
