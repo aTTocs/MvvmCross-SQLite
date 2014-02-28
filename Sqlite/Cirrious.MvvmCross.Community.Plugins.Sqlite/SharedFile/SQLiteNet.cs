@@ -1618,6 +1618,8 @@ namespace Community.SQLite
                 }
             }
             Columns = cols.ToArray();
+			Array.Sort( Columns );
+
             foreach (var c in Columns)
             {
                 if (c.IsAutoInc && c.IsPK)
@@ -1643,7 +1645,7 @@ namespace Community.SQLite
             }
         }
 
-        public bool HasAutoIncPK { get; private set; }
+	    public bool HasAutoIncPK { get; private set; }
 
         public void SetAutoIncPK(object obj, long id)
         {
@@ -1747,7 +1749,7 @@ namespace Community.SQLite
             }
         }
 
-        public class Column
+        public class Column : IComparable<Column>
         {
             PropertyInfo _prop;
 
@@ -1821,6 +1823,31 @@ namespace Community.SQLite
             {
                 return _prop.GetValue(obj, null);
             }
+
+	        /// <summary>
+	        /// Compares the current object with another object of the same type.
+	        /// </summary>
+	        /// <returns>
+	        /// A value that indicates the relative order of the objects being compared. The return value has the following meanings: 
+	        /// Less than zero This object is less than the <paramref name="other"/> parameter.
+	        /// Zero This object is equal to <paramref name="other"/>. 
+	        /// Greater than zero This object is greater than <paramref name="other"/>. 
+	        /// </returns>
+	        /// <param name="other">An object to compare with this object.</param>
+	        public int CompareTo( Column other )
+	        {
+		        if ( IsPK )
+		        {
+			        return -1;
+		        }
+
+		        if ( other.IsPK )
+		        {
+			        return 1;
+		        }
+
+				return 0;
+	        }
         }
     }
 
